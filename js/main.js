@@ -2,70 +2,70 @@
 
 {
   const timer = document.getElementById('timer');
-  const start = document.getElementById('start');
-  const stop = document.getElementById('stop');
-  const reset = document.getElementById('reset');
+  const buttons = {
+    start: document.getElementById('start'),
+    stop: document.getElementById('stop'),
+    reset: document.getElementById('reset'),
+  };
 
-  let startTime;
-  let timeoutId;
-  let elapsedTime = 0;
+  let startTime,
+    timeoutId,
+    elapsedTime = 0;
 
-  function countUp() {
-    const d = new Date(Date.now() - startTime + elapsedTime);
-    const m = String(d.getMinutes()).padStart(2, '0');
-    const s = String(d.getSeconds()).padStart(2, '0');
-    const ms = String(d.getMilliseconds()).padStart(3, '0');
-    timer.textContent = `${m}:${s}.${ms}`;
+  const updateTimer = () => {
+    const time = new Date(Date.now() - startTime + elapsedTime);
+    timer.textContent = `${String(time.getMinutes()).padStart(2, '0')}:${String(
+      time.getSeconds()
+    ).padStart(2, '0')}.${String(time.getMilliseconds()).padStart(3, '0')}`;
+  };
 
-    timeoutId = setTimeout(() => {
-      countUp();
-    }, 10);
-  }
+  const startCountUp = () => {
+    updateTimer();
+    timeoutId = setTimeout(startCountUp, 10);
+  };
 
-  function setButtonStateInitial() {
-    start.classList.remove('inactive');
-    stop.classList.add('inactive');
-    reset.classList.add('inactive');
-  }
+  const setButtonState = (state) => {
+    const states = {
+      initial: ['active', 'inactive', 'inactive'],
+      running: ['inactive', 'active', 'inactive'],
+      stopped: ['active', 'inactive', 'active'],
+    };
 
-  function setButtonStateRunning() {
-    start.classList.add('inactive');
-    stop.classList.remove('inactive');
-    reset.classList.add('inactive');
-  }
+    Object.keys(buttons).forEach((key, index) => {
+      buttons[key].classList.toggle(
+        'inactive',
+        states[state][index] === 'inactive'
+      );
+    });
+  };
 
-  function setButtonStateStopped() {
-    start.classList.remove('inactive');
-    stop.classList.add('inactive');
-    reset.classList.remove('inactive');
-  }
-
-  setButtonStateInitial();
-
-  start.addEventListener('click', () => {
-    if (start.classList.contains('inactive') === true) {
-      return;
-    }
-    setButtonStateRunning();
+  const handleStart = () => {
+    if (buttons.start.classList.contains('inactive')) return;
+    setButtonState('running');
     startTime = Date.now();
-    countUp();
-  });
+    startCountUp();
+  };
 
-  stop.addEventListener('click', () => {
-    if (stop.classList.contains('inactive') === true) {
-      return;
-    }
-    setButtonStateStopped();
+  const handleStop = () => {
+    if (buttons.stop.classList.contains('inactive')) return;
+    setButtonState('stopped');
     clearTimeout(timeoutId);
     elapsedTime += Date.now() - startTime;
-  });
+  };
 
-  reset.addEventListener('click', () => {
-    if (reset.classList.contains('inactive') === true) {
-      return;
-    }
-    setButtonStateInitial();
+  const handleReset = () => {
+    if (buttons.reset.classList.contains('inactive')) return;
+    setButtonState('initial');
     timer.textContent = '00:00.000';
     elapsedTime = 0;
-  });
+  };
+
+  const initialize = () => {
+    setButtonState('initial');
+    buttons.start.addEventListener('click', handleStart);
+    buttons.stop.addEventListener('click', handleStop);
+    buttons.reset.addEventListener('click', handleReset);
+  };
+
+  initialize();
 }
